@@ -1,0 +1,15 @@
+{
+    "EndpointURL": "https://s3.ir-thr-at1.arvanstorage.com",
+    "AccessKey": "",
+    "SecretKey": "",
+    "BackupTime": "12AM",
+    "Operations":
+    [
+        {
+            "Name": "Tazkareh",
+            "Command": "",
+            "BackupDir": "/",
+            "RemoteDir": "/[$Name]/[$Date]/"
+        }
+    ]
+}
