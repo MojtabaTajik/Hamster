@@ -37,5 +37,3 @@ var executeResult = await opExecuter?.ExecuteOperation(operationName)!;
 
 if (! string.IsNullOrEmpty(executeResult))
     logger?.LogInformation(executeResult);
-
-Console.Read();
