@@ -1,3 +1,5 @@
+using hamster.Utils;
+
 namespace hamster.Model;
 
 public class BackupOperation
@@ -6,5 +8,21 @@ public class BackupOperation
     public string Name { get; set; }
     public string Command { get; set; }
     public string BackupDir { get; set; }
-    public string RemoteDir { get; set; }
+
+    public string RemoteFileName
+    {
+        get => TranslateRemoteFileName(_remoteFileName); 
+        set => _remoteFileName = value;
+    }
+
+    private string _remoteFileName;
+
+    private string TranslateRemoteFileName(string fileName)
+    {
+        string date = PersianDateUtils.PersianToday();
+
+        return fileName
+            .Replace("$date", date, StringComparison.OrdinalIgnoreCase)
+            .Replace("$name", Name, StringComparison.OrdinalIgnoreCase);
+    }
 }
