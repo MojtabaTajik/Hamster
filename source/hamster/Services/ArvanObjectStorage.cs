@@ -42,7 +42,7 @@ public class ArvanObjectStorage
             return false;
         }
     }
-    
+
     public async Task<bool> BucketExists(string bucketName)
     {
         return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
@@ -61,6 +61,26 @@ public class ArvanObjectStorage
         {
             _logger.LogError(ex.Message);
             return null;
+        }
+    }
+
+    public async Task<bool> CheckObjectExists(string bucketName, string objectName)
+    {
+        try
+        {
+            var metadataRequest = new GetObjectMetadataRequest()
+            {
+                BucketName = bucketName,
+                Key = objectName
+            };
+
+            var fileMetadata = await _s3Client.GetObjectMetadataAsync(metadataRequest);
+            return fileMetadata.HttpStatusCode == HttpStatusCode.OK;
+        }
+        catch (AmazonS3Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return false;
         }
     }
 }
