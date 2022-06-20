@@ -1,3 +1,4 @@
+using System.Net;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
@@ -22,6 +23,26 @@ public class ArvanObjectStorage
         _s3Client = new AmazonS3Client(awsCredentials, s3Config);
     }
 
+    public async Task<bool> CreateBucketAsync(string bucketName)
+    {
+        try
+        {
+            var putBucketRequest = new PutBucketRequest
+            {
+                BucketName = bucketName,
+                UseClientRegion = true,
+            };
+
+            var putBucketResponse = await _s3Client.PutBucketAsync(putBucketRequest);
+            return putBucketResponse.HttpStatusCode == HttpStatusCode.OK;
+        }
+        catch (AmazonS3Exception ex)
+        {
+            _logger.LogError("Error creating bucket: \'{ExMessage}\'", ex.Message);
+            return false;
+        }
+    }
+    
     public async Task<bool> BucketExists(string bucketName)
     {
         return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
