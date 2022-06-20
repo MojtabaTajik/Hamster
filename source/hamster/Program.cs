@@ -32,6 +32,9 @@ logger?.LogInformation("Hamster started");
 
 var operationName = args[0];
 var opExecuter = serviceProvider.GetService<OperationExecuter>();
-opExecuter?.ExecuteOperation(operationName);
+var executeResult = opExecuter?.ExecuteOperation(operationName);
+
+if (! string.IsNullOrEmpty(executeResult))
+    logger?.LogInformation(executeResult);
 
 Console.Read();
