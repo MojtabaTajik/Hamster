@@ -1,4 +1,5 @@
 using System.Net;
+using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
@@ -82,5 +83,87 @@ public class ArvanObjectStorage
             _logger.LogError(ex.Message);
             return false;
         }
+    }
+    
+    
+    public async Task<bool> UploadObjectAsync(string bucketName, string keyName, string filePath)
+    {
+        // Create list to store upload part responses.
+        List<UploadPartResponse> uploadResponses = new();
+
+        // Setup information required to initiate the multipart upload.
+        InitiateMultipartUploadRequest initiateRequest = new()
+        {
+            BucketName = bucketName,
+            Key = keyName,
+        };
+
+        // Initiate the upload.
+        InitiateMultipartUploadResponse initResponse =
+            await _s3Client.InitiateMultipartUploadAsync(initiateRequest);
+
+        // Upload parts.
+        long contentLength = new FileInfo(filePath).Length;
+        long partSize = 400 * (long)Math.Pow(2, 20); // 400 MB
+
+        try
+        {
+            long filePosition = 0;
+            for (int i = 1; filePosition < contentLength; i++)
+            {
+                UploadPartRequest uploadRequest = new()
+                {
+                    BucketName = bucketName,
+                    Key = keyName,
+                    UploadId = initResponse.UploadId,
+                    PartNumber = i,
+                    PartSize = partSize,
+                    FilePosition = filePosition,
+                    FilePath = filePath,
+                };
+
+                // Track upload progress.
+                uploadRequest.StreamTransferProgress += UploadPartProgressEventCallback;
+
+                // Upload a part and add the response to our list.
+                uploadResponses.Add(await _s3Client.UploadPartAsync(uploadRequest));
+
+                filePosition += partSize;
+            }
+
+            // Setup to complete the upload.
+            CompleteMultipartUploadRequest completeRequest = new()
+            {
+                BucketName = bucketName,
+                Key = keyName,
+                UploadId = initResponse.UploadId,
+            };
+            completeRequest.AddPartETags(uploadResponses);
+
+            // Complete the upload.
+            CompleteMultipartUploadResponse completeUploadResponse =
+                await _s3Client.CompleteMultipartUploadAsync(completeRequest);
+
+            return await CheckObjectExists(bucketName, keyName);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError("An AmazonS3Exception was thrown: {ExceptionMessage}", exception.Message);
+
+            // Abort the upload.
+            AbortMultipartUploadRequest abortMpuRequest = new()
+            {
+                BucketName = bucketName,
+                Key = keyName,
+                UploadId = initResponse.UploadId,
+            };
+            await _s3Client.AbortMultipartUploadAsync(abortMpuRequest);
+            return false;
+        }
+    }
+
+    private void UploadPartProgressEventCallback(object? sender, StreamTransferProgressArgs e)
+    {
+        _logger.LogInformation("{ETransferredBytes}/{ETotalBytes}", e.TransferredBytes, e.TotalBytes);
     }
 }
