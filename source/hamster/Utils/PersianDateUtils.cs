@@ -4,7 +4,7 @@ namespace hamster.Utils;
 
 public class PersianDateUtils
 {
-    public static string PersianToday()
+    public static string Now()
     {
         DateTime now = DateTime.Now;
         PersianCalendar pc = new PersianCalendar();

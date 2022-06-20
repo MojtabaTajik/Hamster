@@ -19,7 +19,7 @@ public class BackupOperation
 
     private string TranslateRemoteFileName(string fileName)
     {
-        string date = PersianDateUtils.PersianToday();
+        string date = PersianDateUtils.Now();
 
         return fileName
             .Replace("$date", date, StringComparison.OrdinalIgnoreCase)
