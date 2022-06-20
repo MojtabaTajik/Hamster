@@ -4,7 +4,6 @@ namespace hamster.Model;
 
 public class BackupOperation
 {
-    public string Bucket { get; set; }
     public string Name { get; set; }
     public string Command { get; set; }
     public string DirToBackup { get; set; }
