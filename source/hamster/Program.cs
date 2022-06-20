@@ -24,6 +24,7 @@ var serviceProvider = new ServiceCollection()
         });
     })
     .AddSingleton<OperationExecuter>()
+    .AddScoped<ArvanObjectStorage>()
     .AddSingleton(config)
     .BuildServiceProvider();
 
@@ -32,7 +33,7 @@ logger?.LogInformation("Hamster started");
 
 var operationName = args[0];
 var opExecuter = serviceProvider.GetService<OperationExecuter>();
-var executeResult = opExecuter?.ExecuteOperation(operationName);
+var executeResult = await opExecuter?.ExecuteOperation(operationName)!;
 
 if (! string.IsNullOrEmpty(executeResult))
     logger?.LogInformation(executeResult);
