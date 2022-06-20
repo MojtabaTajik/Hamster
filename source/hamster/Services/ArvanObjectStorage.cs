@@ -26,4 +26,20 @@ public class ArvanObjectStorage
     {
         return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
     }
+
+    public async Task<GetACLResponse?> GetBucketACL(string bucketName)
+    {
+        try
+        {
+            return await _s3Client.GetACLAsync(new GetACLRequest
+            {
+                BucketName = bucketName,
+            });
+        }
+        catch (AmazonS3Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return null;
+        }
+    }
 }
