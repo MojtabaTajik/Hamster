@@ -1,14 +1,17 @@
 using hamster.Services;
+using Microsoft.Extensions.Logging;
 
 namespace hamster.Utils;
 
 public class UploadFileUtils
 {
     private readonly ArvanObjectStorage _aos;
+    private readonly ILogger<UploadFileUtils> _logger;
 
-    public UploadFileUtils(ArvanObjectStorage aos)
+    public UploadFileUtils(ArvanObjectStorage aos, ILogger<UploadFileUtils> logger)
     {
         _aos = aos;
+        _logger = logger;
     }
 
     public async Task<bool> UploadFile(string bucketName, string fileName, string filePath)
@@ -16,17 +19,13 @@ public class UploadFileUtils
         bool bucketExists = await _aos.BucketExists(bucketName);
         if (!bucketExists)
         {
+            _logger.LogInformation("Bucket not exists, create it");
             bucketExists = await _aos.CreateBucketAsync(bucketName);
         }
 
         if (bucketExists)
         {
-            var acl = await _aos.GetBucketACL(bucketName);
-            var isFullControl = acl.AccessControlList.Grants.Exists(e => e.Permission.Value.Equals("FULL_CONTROL"));
-            if (isFullControl)
-            {
-                return await _aos.UploadObjectAsync(bucketName, fileName, filePath);
-            }
+            return await _aos.UploadObjectAsync(bucketName, fileName, filePath);
         }
 
         return false;
