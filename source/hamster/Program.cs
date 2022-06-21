@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Runtime.InteropServices.ComTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using hamster.Model;
@@ -29,6 +30,7 @@ var serviceProvider = new ServiceCollection()
     })
     .AddSingleton<OperationExecuter>()
     .AddScoped<ArvanObjectStorage>()
+    .AddScoped<UploadFileUtils>()
     .AddSingleton(config)
     .BuildServiceProvider();
 
@@ -37,7 +39,4 @@ logger?.LogInformation("Hamster started");
 
 var operationName = args[0];
 var opExecuter = serviceProvider.GetService<OperationExecuter>();
-var executeResult = await opExecuter?.ExecuteOperation(operationName)!;
-
-if (! string.IsNullOrEmpty(executeResult))
-    logger?.LogInformation(executeResult);
+_ = await opExecuter?.ExecuteOperation(operationName)!;
