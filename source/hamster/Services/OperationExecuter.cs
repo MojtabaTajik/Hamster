@@ -35,7 +35,6 @@ public class OperationExecuter
             if (!Directory.Exists(backupDir))
             {
                 Directory.CreateDirectory(backupDir);
-                //await ProcessUtils.ExecuteProcess($"chmod u+w {backupDir}");
             }
 
             // Execute operation
@@ -65,7 +64,7 @@ public class OperationExecuter
             // Clean up files
             _logger.LogInformation("Cleanup files");
             File.Delete(tempZipFilePath);
-            //new DirectoryInfo(backupDir).Delete(true);
+            new DirectoryInfo(backupDir).Delete(true);
             
             return true;
         }
