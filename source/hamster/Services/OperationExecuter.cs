@@ -1,44 +1,74 @@
-using System.Diagnostics;
+using System.IO.Compression;
 using hamster.Model;
+using hamster.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace hamster.Services;
 
 public class OperationExecuter
 {
     private readonly Config _config;
+    private readonly UploadFileUtils _uploadFileUtils;
+    private readonly ILogger<OperationExecuter> _logger;
 
-    public OperationExecuter(Config config)
+    public OperationExecuter(Config config, ILogger<OperationExecuter> logger, UploadFileUtils uploadFileUtils)
     {
         _config = config;
+        _logger = logger;
+        _uploadFileUtils = uploadFileUtils;
     }
 
-    public string ExecuteOperation(string operationName)
+    public async Task<bool> ExecuteOperation(string operationName)
     {
         try
         {
             var operation = _config.Operations.FirstOrDefault(f => 
-                f.Name.ToLower().Equals(operationName.ToLower()));
+                f.Name.Equals(operationName, StringComparison.OrdinalIgnoreCase));
+
+            if (operation == null)
+            {
+                _logger.LogCritical("No such operation with name {OperationName}", operationName);
+                return false;
+            }
+
+            string backupDir = PathUtils.BackupDir(operation.Name);
+            if (!Directory.Exists(backupDir))
+            {
+                Directory.CreateDirectory(backupDir);
+            }
+
+            // Execute operation
+            string result = await ProcessUtils.ExecuteProcess(operation!.Command);
+            _logger.LogInformation("Execute result => {Result}", result);
             
-            // Execute task
-            string result = string.Empty;
-            using var proc = new Process();
-            proc.StartInfo.FileName = "/bin/bash";
-            proc.StartInfo.Arguments = "-c \"" + operation!.Command + "\"";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.StartInfo.RedirectStandardError = true;
-            proc.Start();
+            if (Directory.GetFiles(backupDir).Length <= 0)
+            {
+                _logger.LogInformation("Backup command finished without generating any file in backup dir");
+                return false;
+            }
+            
+            _logger.LogInformation("Backup done, Uploading ...");
 
-            result += proc.StandardOutput.ReadToEnd();
-            result += proc.StandardError.ReadToEnd();
+            string bucketName = $"{operation.Name}-Backup".ToLower();
+            
+            // Compress backup directory and upload it to bucket
+            var tempZipFilePath = Path.Combine(Path.GetTempPath(), operation.RemoteFileName);
+            if (File.Exists(tempZipFilePath))
+                File.Delete(tempZipFilePath);
 
-            proc.WaitForExit();
+            ZipFile.CreateFromDirectory(backupDir, tempZipFilePath);
 
-            return result;
+            bool uploadResult = await _uploadFileUtils.UploadFile(bucketName, operation.RemoteFileName, tempZipFilePath);
+            _logger.LogInformation(uploadResult ? "Upload file success" : "Upload file failed");
+            
+            File.Delete(tempZipFilePath);
+
+            return true;
         }
         catch (Exception e)
         {
-            return e.Message;
+            _logger.LogError(e.Message);
+            return false;
         }
     }
 }
