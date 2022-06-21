@@ -35,8 +35,10 @@ var serviceProvider = new ServiceCollection()
     .BuildServiceProvider();
 
 var logger = serviceProvider.GetService<ILogger<Program>>();
-logger?.LogInformation("Hamster started");
+logger?.LogCritical("Hamster started");
 
 var operationName = args[0];
 var opExecuter = serviceProvider.GetService<OperationExecuter>();
 _ = await opExecuter?.ExecuteOperation(operationName)!;
+
+logger?.LogCritical("Hamster done");
