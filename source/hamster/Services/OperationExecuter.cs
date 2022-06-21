@@ -35,6 +35,7 @@ public class OperationExecuter
             if (!Directory.Exists(backupDir))
             {
                 Directory.CreateDirectory(backupDir);
+                await ProcessUtils.ExecuteProcess($"chmod -R 777 {backupDir}");
             }
 
             // Execute operation
