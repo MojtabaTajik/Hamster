@@ -65,7 +65,7 @@ public class OperationExecuter
             // Clean up files
             _logger.LogInformation("Cleanup files");
             File.Delete(tempZipFilePath);
-            new DirectoryInfo(backupDir).Delete(true);
+            //new DirectoryInfo(backupDir).Delete(true);
             
             return true;
         }
