@@ -3,12 +3,16 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using hamster.Model;
 using hamster.Services;
+using hamster.Utils;
 
-const string configFileName = "config.json";
-if (!File.Exists(configFileName))
+var configFilePath = PathUtils.ConfigFilePath();
+if (!File.Exists(configFilePath))
+{
+    Console.WriteLine("Config file not found");
     return;
+}
 
-var configContent = File.ReadAllText(configFileName);
+var configContent = File.ReadAllText(configFilePath);
 var config = JsonSerializer.Deserialize<Config>(configContent);
 
 if (config == null || args.Length < 1)
