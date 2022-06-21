@@ -11,8 +11,6 @@ public class BackupOperation
         set => _command = value;
     }
     
-    public string DirToBackup { get; set; }
-
     public string RemoteFileName
     {
         get => TranslateRemoteFileName(_remoteFileName); 
@@ -35,6 +33,6 @@ public class BackupOperation
     private string TranslateCommand(string command)
     {
         return command
-            .Replace("$DirToBackup", DirToBackup, StringComparison.OrdinalIgnoreCase);
+            .Replace("$Name", PathUtils.BackupDir(Name), StringComparison.OrdinalIgnoreCase);
     }
 }
