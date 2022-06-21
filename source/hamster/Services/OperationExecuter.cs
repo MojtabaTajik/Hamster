@@ -61,8 +61,11 @@ public class OperationExecuter
             bool uploadResult = await _uploadFileUtils.UploadFile(bucketName, operation.RemoteFileName, tempZipFilePath);
             _logger.LogInformation(uploadResult ? "Upload file success" : "Upload file failed");
             
+            // Clean up files
+            _logger.LogInformation("Cleanup files");
             File.Delete(tempZipFilePath);
-
+            new DirectoryInfo(backupDir).Delete(true);
+            
             return true;
         }
         catch (Exception e)
