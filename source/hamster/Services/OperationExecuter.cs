@@ -32,6 +32,8 @@ public class OperationExecuter
                 _logger.LogCritical("No such operation with name {OperationName}", operationName);
                 return false;
             }
+            
+            _logger.LogInformation("Executing {OperationName}", operation.Name);
 
             string backupDir = PathUtils.BackupDir(operation.Name);
             if (!Directory.Exists(backupDir))
@@ -43,6 +45,7 @@ public class OperationExecuter
             string result = await ProcessUtils.ExecuteProcess(operation!.Command);
             _logger.LogInformation("Execute result => {Result}", result);
             
+            // Check operation execution generate any backup file or not
             if (Directory.GetFiles(backupDir).Length <= 0)
             {
                 _logger.LogInformation("Backup command finished without generating any file in backup dir");
@@ -74,7 +77,7 @@ public class OperationExecuter
 
                 if (!uploadResult)
                 {
-                    _logger.LogInformation("Upload [{FileName}] failed", fileName);
+                    _logger.LogError("Upload [{FileName}] failed", fileName);
                 }
             }
 
