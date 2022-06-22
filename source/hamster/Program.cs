@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.ComTypes;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using hamster.Model;
@@ -31,6 +30,7 @@ var serviceProvider = new ServiceCollection()
     .AddSingleton<OperationExecuter>()
     .AddScoped<ArvanObjectStorage>()
     .AddScoped<UploadFileUtils>()
+    .AddScoped<CompressUtils>()
     .AddSingleton(config)
     .BuildServiceProvider();
 
