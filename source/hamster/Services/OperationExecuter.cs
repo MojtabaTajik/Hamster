@@ -52,26 +52,31 @@ public class OperationExecuter
                 return false;
             }
             
-            _logger.LogInformation("Backup done, Uploading ...");
-
-            string bucketName = $"{operation.Name}-Backup".ToLower();
+            _logger.LogInformation("Backup done, split into 5GB parts if needed ...");
             
-            // Compress backup directory
-            int maxAmazonS3BucketObjectSize = unchecked(5 * 1024 * 1024 * 1024);
+            // Compress backup directory & split into parts if needed
+            int maxPartSize = unchecked(1 * 1024 * 1024 * 1024);
 
             string zipFilePartsStoragePath = Path.Combine(Path.GetTempPath(), operation.Name);
             var compressedFiles = _compressUtils.CompressDirectoryInParts(backupDir, zipFilePartsStoragePath,
-                operation.RemoteFileName, maxAmazonS3BucketObjectSize);
+                operation.RemoteFileName, maxPartSize);
 
+            if (!compressedFiles.Any())
+            {
+                _logger.LogInformation("There is no file in => {ZipFilePartsStoragePath} to upload", zipFilePartsStoragePath);
+            }
+            
             // Upload zip files (parts)
+            string bucketName = $"{operation.Name}-Backup".ToLower();
+            
             int partCounter = 0;
             foreach (var compressedFile in compressedFiles)
             {   
                 partCounter++;
                 string fileName = Path.GetFileName(compressedFile);
                 
-                _logger.LogInformation("Uploading [{PartCounter}/{CompressedFileLength}] => {FileName}",
-                    partCounter, compressedFile.Length, fileName);
+                _logger.LogInformation("Uploading [{PartCounter}/{CompressedFilesCount}] => {FileName}",
+                    partCounter, compressedFiles.Count, fileName);
                 
                 bool uploadResult = await _uploadFileUtils.UploadFile(bucketName, fileName, compressedFile);
 
@@ -82,10 +87,10 @@ public class OperationExecuter
             }
 
             // Clean up files
-            _logger.LogInformation("Cleanup up backup dir ...");
+            _logger.LogInformation("Cleanup up backup dir => {BackupDir}", backupDir);
             new DirectoryInfo(backupDir).Delete(true);
             
-            _logger.LogInformation("Cleanup up temp zip parts ...");
+            _logger.LogInformation("Cleanup up temp zip parts => {ZipFilePartsStoragePath}", zipFilePartsStoragePath);
             new DirectoryInfo(zipFilePartsStoragePath).Delete(true);
             
             return true;
