@@ -148,7 +148,7 @@ public class ArvanObjectStorage
         }
         catch (Exception exception)
         {
-            _logger.LogError("An AmazonS3Exception was thrown: {ExceptionMessage}", exception.Message);
+            _logger.LogError("An AmazonS3Exception was thrown: {ExceptionMessage}, cleaning uploaded files", exception.Message);
 
             // Abort the upload.
             AbortMultipartUploadRequest abortMpuRequest = new()
@@ -164,6 +164,6 @@ public class ArvanObjectStorage
 
     private void UploadPartProgressEventCallback(object? sender, StreamTransferProgressArgs e)
     {
-        _logger.LogInformation("{ETransferredBytes}/{ETotalBytes}", e.TransferredBytes, e.TotalBytes);
+        //_logger.LogInformation("{ETransferredBytes}/{ETotalBytes}", e.TransferredBytes, e.TotalBytes);
     }
 }
