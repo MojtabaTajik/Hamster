@@ -10,17 +10,15 @@ namespace hamster.Services;
 
 public class ArvanObjectStorage
 {
-    private readonly Config _config;
     private readonly AmazonS3Client _s3Client;
     private readonly ILogger<ArvanObjectStorage> _logger;
 
     public ArvanObjectStorage(Config config, ILogger<ArvanObjectStorage> logger)
     {
-        _config = config;
         _logger = logger;
 
-        var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(_config.AccessKey, _config.SecretKey);
-        var s3Config = new AmazonS3Config { ServiceURL = _config.EndpointURL };
+        var awsCredentials = new BasicAWSCredentials(config.AccessKey, config.SecretKey);
+        var s3Config = new AmazonS3Config { ServiceURL = config.EndpointURL };
         _s3Client = new AmazonS3Client(awsCredentials, s3Config);
     }
 
@@ -103,21 +101,30 @@ public class ArvanObjectStorage
             await _s3Client.InitiateMultipartUploadAsync(initiateRequest);
 
         // Upload parts.
-        long contentLength = new FileInfo(filePath).Length;
-        long partSize = 400 * (long)Math.Pow(2, 20); // 400 MB
-
         try
         {
+            int partSizeInMb = 200;
+            long partSizeInByte = partSizeInMb * (long)Math.Pow(2, 20); // 200 MB
+
+            long contentLength = new FileInfo(filePath).Length;
+            
+            long partCount = contentLength / partSizeInByte;
+            long partNo = 0;
+            
             long filePosition = 0;
             for (int i = 1; filePosition < contentLength; i++)
-            {
+            {          
+                partNo++;
+                _logger.LogInformation("Uploading part {PartNo}/{PartCount} - Part Size({partSizeInMb} MB)"
+                    , partNo, partCount, partSizeInByte);
+                
                 UploadPartRequest uploadRequest = new()
                 {
                     BucketName = bucketName,
                     Key = keyName,
                     UploadId = initResponse.UploadId,
                     PartNumber = i,
-                    PartSize = partSize,
+                    PartSize = partSizeInByte,
                     FilePosition = filePosition,
                     FilePath = filePath,
                 };
@@ -128,7 +135,7 @@ public class ArvanObjectStorage
                 // Upload a part and add the response to our list.
                 uploadResponses.Add(await _s3Client.UploadPartAsync(uploadRequest));
 
-                filePosition += partSize;
+                filePosition += partSizeInByte;
             }
 
             // Setup to complete the upload.
@@ -148,7 +155,8 @@ public class ArvanObjectStorage
         }
         catch (Exception exception)
         {
-            _logger.LogError("An AmazonS3Exception was thrown: {ExceptionMessage}, cleaning uploaded files", exception.Message);
+            _logger.LogError("An AmazonS3Exception was thrown: {ExceptionMessage}, cleaning uploaded files", 
+                exception.Message);
 
             // Abort the upload.
             AbortMultipartUploadRequest abortMpuRequest = new()
@@ -164,6 +172,8 @@ public class ArvanObjectStorage
 
     private void UploadPartProgressEventCallback(object? sender, StreamTransferProgressArgs e)
     {
-        //_logger.LogInformation("{ETransferredBytes}/{ETotalBytes}", e.TransferredBytes, e.TotalBytes);
+        // Log percent done each 10 percent
+        //if (e.PercentDone % 10 == 0)
+            //_logger.LogInformation("{EPercentDone} %", e.PercentDone);
     }
 }
