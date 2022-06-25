@@ -106,9 +106,14 @@ public class ArvanObjectStorage
             int partSizeInMb = 200;
             long partSizeInByte = partSizeInMb * (long)Math.Pow(2, 20); // 200 MB
 
-            double contentLength = new FileInfo(filePath).Length;
+            long contentLength = new FileInfo(filePath).Length;
             
-            double partCount = Math.Round((contentLength / partSizeInByte), MidpointRounding.AwayFromZero);
+            var partCount = contentLength / partSizeInByte;
+            
+            // Set part count to one for single part files
+            if (contentLength > 0 && partCount == 0)
+                partCount = 1;
+            
             long partNo = 0;
             
             long filePosition = 0;
