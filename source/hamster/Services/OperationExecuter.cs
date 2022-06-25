@@ -1,4 +1,3 @@
-using System.IO.Compression;
 using hamster.Model;
 using hamster.Utils;
 using Microsoft.Extensions.Logging;
@@ -52,10 +51,10 @@ public class OperationExecuter
                 return false;
             }
             
-            _logger.LogInformation("Backup done, split into parts if needed ...");
+            _logger.LogInformation("Backup done, compressing backup file ...");
             
             // Compress backup directory & split into parts if needed
-            int maxPartSize = unchecked(400 * 1024 * 1024);
+            long maxPartSize = 5 * (long)Math.Pow(2, 30);
 
             string zipFilePartsStoragePath = Path.Combine(Path.GetTempPath(), operation.Name);
             var compressedFiles = _compressUtils.CompressDirectory(backupDir, zipFilePartsStoragePath,
@@ -69,14 +68,14 @@ public class OperationExecuter
             // Upload zip files (parts)
             string bucketName = $"{operation.Name}-Backup".ToLower();
             
-            int partCounter = 0;
+            int fileCounter = 0;
             foreach (var compressedFile in compressedFiles)
             {   
-                partCounter++;
+                fileCounter++;
                 string fileName = Path.GetFileName(compressedFile);
                 
-                _logger.LogInformation("Uploading [{PartCounter}/{CompressedFilesCount}] => {FileName}",
-                    partCounter, compressedFiles.Count, fileName);
+                _logger.LogInformation("Uploading [{FileCounter}/{CompressedFilesCount}] => {FileName}",
+                    fileCounter, compressedFiles.Count, fileName);
                 
                 bool uploadResult = await _uploadFileUtils.UploadFile(bucketName, fileName, compressedFile);
 
@@ -88,10 +87,10 @@ public class OperationExecuter
 
             // Clean up files
             _logger.LogInformation("Cleanup up backup dir => {BackupDir}", backupDir);
-            //new DirectoryInfo(backupDir).Delete(true);
+            new DirectoryInfo(backupDir).Delete(true);
             
             _logger.LogInformation("Cleanup up temp zip parts => {ZipFilePartsStoragePath}", zipFilePartsStoragePath);
-            //new DirectoryInfo(zipFilePartsStoragePath).Delete(true);
+            new DirectoryInfo(zipFilePartsStoragePath).Delete(true);
             
             return true;
         }
