@@ -108,7 +108,7 @@ public class ArvanObjectStorage
 
             long contentLength = new FileInfo(filePath).Length;
             
-            var partCount = contentLength / partSizeInByte;
+            var partCount = Math.Round((double)(contentLength / partSizeInByte), MidpointRounding.ToEven);
             
             // Set part count to one for single part files
             if (contentLength > 0 && partCount == 0)
@@ -121,7 +121,7 @@ public class ArvanObjectStorage
             {          
                 partNo++;
                 _logger.LogInformation("Uploading part {PartNo}/{PartCount} - Part Size({partSizeInMb} MB)"
-                    , partNo, partCount, partSizeInByte);
+                    , partNo, partCount, partSizeInMb);
                 
                 UploadPartRequest uploadRequest = new()
                 {
