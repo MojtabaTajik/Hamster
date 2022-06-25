@@ -52,13 +52,13 @@ public class OperationExecuter
                 return false;
             }
             
-            _logger.LogInformation("Backup done, split into 5GB parts if needed ...");
+            _logger.LogInformation("Backup done, split into parts if needed ...");
             
             // Compress backup directory & split into parts if needed
-            int maxPartSize = unchecked(1 * 1024 * 1024 * 1024);
+            int maxPartSize = unchecked(400 * 1024 * 1024);
 
             string zipFilePartsStoragePath = Path.Combine(Path.GetTempPath(), operation.Name);
-            var compressedFiles = _compressUtils.CompressDirectoryInParts(backupDir, zipFilePartsStoragePath,
+            var compressedFiles = _compressUtils.CompressDirectory(backupDir, zipFilePartsStoragePath,
                 operation.RemoteFileName, maxPartSize);
 
             if (!compressedFiles.Any())
@@ -88,10 +88,10 @@ public class OperationExecuter
 
             // Clean up files
             _logger.LogInformation("Cleanup up backup dir => {BackupDir}", backupDir);
-            new DirectoryInfo(backupDir).Delete(true);
+            //new DirectoryInfo(backupDir).Delete(true);
             
             _logger.LogInformation("Cleanup up temp zip parts => {ZipFilePartsStoragePath}", zipFilePartsStoragePath);
-            new DirectoryInfo(zipFilePartsStoragePath).Delete(true);
+            //new DirectoryInfo(zipFilePartsStoragePath).Delete(true);
             
             return true;
         }

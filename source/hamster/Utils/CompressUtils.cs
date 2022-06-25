@@ -4,25 +4,25 @@ namespace hamster.Utils;
 
 public class CompressUtils
 {
-    public List<string> CompressDirectoryInParts(string sourceDir, string destPath, string fileName, long partSize)
+    public List<string> CompressDirectory(string sourceDir, string destPath, string fileName, long partSize)
     {
+        var result = new List<string>();
+
         if (!Directory.Exists(sourceDir))
-            return new List<string>();
+            return result;
 
         if (!Directory.Exists(destPath))
             Directory.CreateDirectory(destPath);
         
-        var mainZipFilePath = Path.Combine(destPath, Path.GetRandomFileName());
+        var mainZipFilePath = Path.Combine(destPath, fileName);
         ZipFile.CreateFromDirectory(sourceDir, mainZipFilePath);
         if (!File.Exists(mainZipFilePath))
-            return new List<string>();
+            return result;
 
         if (new FileInfo(mainZipFilePath).Length <= partSize)
         {
-            return new List<string>
-            {
-                mainZipFilePath
-            };
+            result.Add(mainZipFilePath);
+            return result;
         }
 
         return SplitFile(mainZipFilePath, partSize, destPath, fileName);
