@@ -44,6 +44,6 @@ var executeResult = await opExecuter?.ExecuteOperation(operationName)!;
 
 if (!executeResult)
 {
-    NotifyUtils.SendNotification(operationName, "Backup failed", "Failed to get backup.", "error");
+    await NotifyUtils.SendNotification(operationName, "Backup failed", "Failed to get backup.", "error");
 }
 logger?.LogCritical("Hamster done");
