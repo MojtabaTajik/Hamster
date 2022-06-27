@@ -31,6 +31,7 @@ var serviceProvider = new ServiceCollection()
     .AddScoped<ArvanObjectStorage>()
     .AddScoped<UploadFileUtils>()
     .AddScoped<CompressUtils>()
+    .AddScoped<NotifyUtils>()
     .AddSingleton(config)
     .BuildServiceProvider();
 
@@ -39,6 +40,10 @@ logger?.LogCritical("Hamster started");
 
 var operationName = args[0];
 var opExecuter = serviceProvider.GetService<OperationExecuter>();
-_ = await opExecuter?.ExecuteOperation(operationName)!;
+var executeResult = await opExecuter?.ExecuteOperation(operationName)!;
 
+if (!executeResult)
+{
+    NotifyUtils.SendNotification(operationName, "Backup failed", "Failed to get backup.", "error");
+}
 logger?.LogCritical("Hamster done");
