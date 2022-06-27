@@ -63,6 +63,7 @@ public class OperationExecuter
             if (!compressedFiles.Any())
             {
                 _logger.LogInformation("There is no file in => {ZipFilePartsStoragePath} to upload", zipFilePartsStoragePath);
+                return false;
             }
             
             // Upload zip files (parts)
@@ -82,6 +83,7 @@ public class OperationExecuter
                 if (!uploadResult)
                 {
                     _logger.LogError("Upload [{FileName}] failed", fileName);
+                    return false;
                 }
             }
 
