@@ -33,7 +33,8 @@ public class ArvanObjectStorage
             };
 
             var putBucketResponse = await _s3Client.PutBucketAsync(putBucketRequest);
-            return putBucketResponse.HttpStatusCode == HttpStatusCode.OK;
+            bool setLifecycleRuleResult = await SetBucketLifecycleRule(bucketName);
+            return (putBucketResponse.HttpStatusCode == HttpStatusCode.OK) && setLifecycleRuleResult;
         }
         catch (AmazonS3Exception ex)
         {
@@ -47,23 +48,7 @@ public class ArvanObjectStorage
         return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
     }
 
-    public async Task<GetACLResponse?> GetBucketACL(string bucketName)
-    {
-        try
-        {
-            return await _s3Client.GetACLAsync(new GetACLRequest
-            {
-                BucketName = bucketName,
-            });
-        }
-        catch (AmazonS3Exception ex)
-        {
-            _logger.LogError(ex.Message);
-            return null;
-        }
-    }
-
-    public async Task<bool> CheckObjectExists(string bucketName, string objectName)
+    private async Task<bool> CheckObjectExists(string bucketName, string objectName)
     {
         try
         {
@@ -82,8 +67,7 @@ public class ArvanObjectStorage
             return false;
         }
     }
-    
-    
+
     public async Task<bool> UploadObjectAsync(string bucketName, string keyName, string filePath)
     {
         // Create list to store upload part responses.
@@ -107,25 +91,25 @@ public class ArvanObjectStorage
             long partSizeInByte = partSizeInMb * (long)Math.Pow(2, 20); // 200 MB
 
             long contentLength = new FileInfo(filePath).Length;
-            
+
             var partCount = Math.Round((double)(contentLength / partSizeInByte), MidpointRounding.AwayFromZero);
-            
+
             // Set part count to one for single part files
             if (contentLength > 0 && partCount == 0)
                 partCount = 1;
-            
+
             long partNo = 0;
-            
+
             long filePosition = 0;
             for (int i = 1; filePosition < contentLength; i++)
-            {    
+            {
                 partNo++;
-                
+
                 var remainingMb = ((contentLength - filePosition) / Math.Pow(2, 20));
-              
+
                 _logger.LogInformation("Uploading part {PartNo}/{PartCount} - Remaining size = ({RemainingMb} MB)"
                     , partNo, partCount, remainingMb);
-                
+
                 UploadPartRequest uploadRequest = new()
                 {
                     BucketName = bucketName,
@@ -163,7 +147,7 @@ public class ArvanObjectStorage
         }
         catch (Exception exception)
         {
-            _logger.LogError("An AmazonS3Exception was thrown: {ExceptionMessage}, cleaning uploaded files", 
+            _logger.LogError("An AmazonS3Exception was thrown: {ExceptionMessage}, cleaning uploaded files",
                 exception.Message);
 
             // Abort the upload.
@@ -174,6 +158,53 @@ public class ArvanObjectStorage
                 UploadId = initResponse.UploadId,
             };
             await _s3Client.AbortMultipartUploadAsync(abortMpuRequest);
+            return false;
+        }
+    }
+    
+    private async Task<bool> SetBucketLifecycleRule(string bucketName)
+    {
+        try
+        {
+            var lifecycleConfiguration = new LifecycleConfiguration
+            {
+                Rules = new List<LifecycleRule>
+                {
+                    new LifecycleRule
+                    {
+                        Filter = new LifecycleFilter
+                        {
+                            LifecycleFilterPredicate = new LifecyclePrefixPredicate
+                            {
+                          
+                            }
+                        },
+                        AbortIncompleteMultipartUpload = new LifecycleRuleAbortIncompleteMultipartUpload(){DaysAfterInitiation = 2},
+                        Expiration = new LifecycleRuleExpiration { Days = 30 },
+                        Status = "Enabled",
+                    }
+                }
+            };
+
+            var putLifecycleConfigurationRequest = new PutLifecycleConfigurationRequest
+            {
+                BucketName = bucketName,
+                Configuration = lifecycleConfiguration
+            };
+
+            await _s3Client.PutLifecycleConfigurationAsync(putLifecycleConfigurationRequest);
+
+            _logger.LogInformation("Lifecycle configuration added to {BucketName} bucket.", bucketName);
+            return true;
+        }
+        catch (AmazonS3Exception amazonS3Exception)
+        {
+            _logger.LogError("Failed to set lifecycle rules => {EMessage}", amazonS3Exception.Message);
+            return false;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Failed to set lifecycle rules => {EMessage}", e.Message);
             return false;
         }
     }
