@@ -28,7 +28,7 @@ var serviceProvider = new ServiceCollection()
         });
     })
     .AddSingleton<OperationExecuter>()
-    .AddScoped<ArvanObjectStorage>()
+    .AddScoped<AmazonS3ObjectStorage>()
     .AddScoped<UploadFileUtils>()
     .AddScoped<CompressUtils>()
     .AddScoped<NotifyUtils>()
@@ -42,8 +42,13 @@ var operationName = args[0];
 var opExecuter = serviceProvider.GetService<OperationExecuter>();
 var executeResult = await opExecuter?.ExecuteOperation(operationName)!;
 
-if (!executeResult)
+if (executeResult)
+{
+    await NotifyUtils.SendNotification(operationName, "Backup success", "Backup complete successfully.", "information");
+}
+else
 {
     await NotifyUtils.SendNotification(operationName, "Backup failed", "Failed to get backup.", "error");
 }
+
 logger?.LogCritical("Hamster done");

@@ -5,10 +5,10 @@ namespace hamster.Utils;
 
 public class UploadFileUtils
 {
-    private readonly ArvanObjectStorage _aos;
+    private readonly AmazonS3ObjectStorage _aos;
     private readonly ILogger<UploadFileUtils> _logger;
 
-    public UploadFileUtils(ArvanObjectStorage aos, ILogger<UploadFileUtils> logger)
+    public UploadFileUtils(AmazonS3ObjectStorage aos, ILogger<UploadFileUtils> logger)
     {
         _aos = aos;
         _logger = logger;

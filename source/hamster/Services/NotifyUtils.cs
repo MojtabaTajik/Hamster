@@ -9,7 +9,11 @@ public class NotifyUtils
         try
         {
             var uri = new Uri(
-                $"https://botops.dgab.dev/api/notifications/send-alert?title={title}&message={message}&level={level}&service={service}");
+                 "https://hookapi.io/api/notifications/send-alert?" +
+                $"title={title}" +
+                $"&message={message}" +
+                $"&level={level}" +
+                $"&service={service}");
 
             var getResult = await new HttpClient().GetAsync(uri);
             return getResult.StatusCode == HttpStatusCode.OK;

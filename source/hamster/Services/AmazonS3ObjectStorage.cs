@@ -8,12 +8,12 @@ using Microsoft.Extensions.Logging;
 
 namespace hamster.Services;
 
-public class ArvanObjectStorage
+public class AmazonS3ObjectStorage
 {
     private readonly AmazonS3Client _s3Client;
-    private readonly ILogger<ArvanObjectStorage> _logger;
+    private readonly ILogger<AmazonS3ObjectStorage> _logger;
 
-    public ArvanObjectStorage(Config config, ILogger<ArvanObjectStorage> logger)
+    public AmazonS3ObjectStorage(Config config, ILogger<AmazonS3ObjectStorage> logger)
     {
         _logger = logger;
 
@@ -43,10 +43,7 @@ public class ArvanObjectStorage
         }
     }
 
-    public async Task<bool> BucketExists(string bucketName)
-    {
-        return await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
-    }
+    public async Task<bool> BucketExists(string bucketName) => await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
 
     private async Task<bool> CheckObjectExists(string bucketName, string objectName)
     {
