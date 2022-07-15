@@ -16,12 +16,17 @@ public class BackupOperation
         get => TranslateRemoteFileName(_remoteFileName); 
         set => _remoteFileName = value;
     }
+    
+    public bool PersianDate { get; set; }
 
     private string _remoteFileName;
 
     private string TranslateRemoteFileName(string fileName)
     {
-        string date = PersianDateUtils.Now();
+        string date = DateTime.Now.ToString("yyyy.dd.MM-HH.mm.ss");
+        
+        if (PersianDate)
+            date = PersianDateUtils.Now();
 
         return fileName
             .Replace("$date", date, StringComparison.OrdinalIgnoreCase)
