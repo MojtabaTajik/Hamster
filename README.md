@@ -48,13 +48,14 @@ Hamster needs a config file inside the executable, which contains the S3 secrets
 }
 ```
 
-The $Name and $Date is predefined variables which replaces at runtime with actual values, you can use them in Command or RemoteFileName fields of operation.
+The \$Name and $Date is predefined variables which replaces at runtime with actual values, you can use them in Command or RemoteFileName fields of operation.
 
 > $Date => Replaced with current date time : 2022.15.07-15.53.16
 > 
 > $Name => Replaced with operation name defined in Name field    
 
-
+* Hamster creates a temp directory called $Name. when the operation done the Hamster compress and uploads any content inside this directory as backup data to S3 storage, so remember to generate/move your backups to $Name directory using the command.
+  
 The backup operation starts by passing the operation name defined in the config file to the Hamster executable:
 
 ```
