@@ -10,17 +10,9 @@ using hamster.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-var configFilePath = PathUtils.ConfigFilePath();
-if (!File.Exists(configFilePath))
-{
-    Console.WriteLine("Config file not found");
-    return;
-}
-
 try
 {
-    var configJson = File.ReadAllText(configFilePath);
-    var config = JsonSerializer.Deserialize<ConfigFile>(configJson);
+    var config = ReadConfigFromFile();
 
     Guard.Against.Null(config, nameof(config));
     Guard.Against.Zero(args.Length, nameof(args.Length), "Operation name is mandatory.");
@@ -46,14 +38,14 @@ try
     }
     else
     {
-        await NotifyUtils.SendNotification(operationName, "Backup failed", "Failed to get backup.", "error");
+        await NotifyUtils.SendNotification(operationName, "Backup failed", "Backup failed.", "error");
     }
 
     logger?.LogCritical("Hamster done");
 }
 catch (Exception ex)
 {
-
+    Console.WriteLine($"Exception : {ex.Message}");
 }
 
 
@@ -84,4 +76,17 @@ ServiceProvider BuildServiceProvider(ConfigFile config, BackupOperation operatio
         .AddSingleton(operationToExecuteDto)
         .AddAutoMapper(typeof(Program))
         .BuildServiceProvider();
+}
+
+ConfigFile? ReadConfigFromFile()
+{
+    var configFilePath = PathUtils.ConfigFilePath();
+    if (!File.Exists(configFilePath))
+    {
+        throw new FileNotFoundException("Config file not found.");
+    }
+
+    var configJson = File.ReadAllText(configFilePath);
+    var configFile = JsonSerializer.Deserialize<ConfigFile>(configJson);
+    return configFile;
 }
