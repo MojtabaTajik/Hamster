@@ -6,27 +6,29 @@ namespace hamster.Services;
 
 public class OperationExecutive
 {
+    private readonly ILogger<OperationExecutive> _logger;
+    private readonly BackupOperationDto _operationDto;
     private readonly UploadFileUtils _uploadFileUtils;
     private readonly CompressUtils _compressUtils;
-    private readonly ILogger<OperationExecutive> _logger;
 
-    public OperationExecutive(ILogger<OperationExecutive> logger, UploadFileUtils uploadFileUtils, CompressUtils compressUtils)
+    public OperationExecutive(ILogger<OperationExecutive> logger,BackupOperationDto operationDto, UploadFileUtils uploadFileUtils, CompressUtils compressUtils)
     {
         _logger = logger;
+        _operationDto = operationDto;
         _uploadFileUtils = uploadFileUtils;
         _compressUtils = compressUtils;
     }
 
-    public async Task<bool> Execute(BackupOperationDto operation)
+    public async Task<bool> Execute()
     {
         try
         {
-            _logger.LogInformation("Executing operation : {OperationName}", operation.Name);
+            _logger.LogInformation("Executing operation : {OperationName}", _operationDto.Name);
 
-            string backupDir = PathUtils.BuildBackupDir(operation.Name);
+            string backupDir = PathUtils.BuildBackupDir(_operationDto.Name);
 
             // Execute operation
-            string result = await ProcessUtils.ExecuteBashCommand(operation.Command);
+            string result = await ProcessUtils.ExecuteBashCommand(_operationDto.Command);
             _logger.LogInformation("Execute result => {Result}", result);
             
             // Check operation execution generate any backup file or not
@@ -41,9 +43,9 @@ public class OperationExecutive
             // Compress backup directory & split into parts if needed
             long maxPartSize = 5 * (long)Math.Pow(2, 30);
 
-            string zipFilePartsStoragePath = Path.Combine(Path.GetTempPath(), operation.Name);
+            string zipFilePartsStoragePath = Path.Combine(Path.GetTempPath(), _operationDto.Name);
             var compressedFiles = _compressUtils.CompressDirectory(backupDir, zipFilePartsStoragePath,
-                operation.RemoteFileName, maxPartSize);
+                _operationDto.RemoteFileName, maxPartSize);
 
             if (!compressedFiles.Any())
             {
@@ -61,7 +63,7 @@ public class OperationExecutive
                 _logger.LogInformation("Uploading [{FileCounter}/{CompressedFilesCount}] => {FileName}",
                     fileCounter, compressedFiles.Count, fileName);
                 
-                bool uploadResult = await _uploadFileUtils.UploadFile(operation.BucketName, fileName, compressedFile);
+                bool uploadResult = await _uploadFileUtils.UploadFile(_operationDto.BucketName, fileName, compressedFile);
 
                 if (!uploadResult)
                 {

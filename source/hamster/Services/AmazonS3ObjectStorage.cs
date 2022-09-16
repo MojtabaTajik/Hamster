@@ -4,7 +4,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
 using Ardalis.GuardClauses;
-using hamster.Model;
+using hamster.DTO;
 using Microsoft.Extensions.Logging;
 
 namespace hamster.Services;
@@ -14,12 +14,12 @@ public class AmazonS3ObjectStorage
     private readonly AmazonS3Client _s3Client;
     private readonly ILogger<AmazonS3ObjectStorage> _logger;
 
-    public AmazonS3ObjectStorage(ConfigFile configFile, ILogger<AmazonS3ObjectStorage> logger)
+    public AmazonS3ObjectStorage(ILogger<AmazonS3ObjectStorage> logger, HamsterConfigDto configDto)
     {
         _logger = logger;
 
-        var awsCredentials = new BasicAWSCredentials(configFile.S3_AccessKey, configFile.S3_SecretKey);
-        var s3Config = new AmazonS3Config { ServiceURL = configFile.S3_EndpointURL };
+        var awsCredentials = new BasicAWSCredentials(configDto.S3_AccessKey, configDto.S3_SecretKey);
+        var s3Config = new AmazonS3Config { ServiceURL = configDto.S3_EndpointURL };
         _s3Client = new AmazonS3Client(awsCredentials, s3Config);
     }
 

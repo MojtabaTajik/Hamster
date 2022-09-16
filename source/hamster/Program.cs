@@ -17,45 +17,54 @@ if (!File.Exists(configFilePath))
     return;
 }
 
-var configJson = File.ReadAllText(configFilePath);
-var config = JsonSerializer.Deserialize<ConfigFile>(configJson);
-
-if (config == null || args.Length < 1)
-    return;
-
-var operationName = args[0];
-var operation = config.Operations.FirstOrDefault(f => f.Name.Equals(operationName, StringComparison.OrdinalIgnoreCase));
-Guard.Against.Null(operation, nameof(operation));
-
-var mapper = new MapperConfiguration(mc =>  mc.AddProfile(new AutoMapping()))
-    .CreateMapper();
-
-var configDto = mapper.Map<HamsterConfigDto>(config);
-var operationToExecuteDto = mapper.Map<BackupOperationDto>(config.Operations[0]);
-
-var serviceProvider = BuildServiceProvider();
-
-var logger = serviceProvider.GetService<ILogger<Program>>();
-logger?.LogInformation("Hamster started");
-
-
-var operationExecutive = serviceProvider.GetService<OperationExecutive>();
-var executeResult = await operationExecutive?.Execute(operationToExecuteDto)!;
-
-if (executeResult)
+try
 {
-    await NotifyUtils.SendNotification(operationName, "Backup success", "Backup complete successfully.", "information");
+    var configJson = File.ReadAllText(configFilePath);
+    var config = JsonSerializer.Deserialize<ConfigFile>(configJson);
+
+    Guard.Against.Null(config, nameof(config));
+    Guard.Against.Zero(args.Length, nameof(args.Length), "Operation name is mandatory.");
+
+    var operationName = args[0];
+    var operation =
+        config.Operations.FirstOrDefault(f => f.Name.Equals(operationName, StringComparison.OrdinalIgnoreCase));
+    
+    Guard.Against.Null(operation, nameof(operation));
+    
+    var serviceProvider = BuildServiceProvider(config, operation);
+    
+    var logger = serviceProvider.GetService<ILogger<Program>>();
+    logger?.LogInformation("Hamster started");
+    
+    var operationExecutive = serviceProvider.GetService<OperationExecutive>();
+    var executeResult = await operationExecutive?.Execute()!;
+
+    if (executeResult)
+    {
+        await NotifyUtils.SendNotification(operationName, "Backup success", "Backup complete successfully.",
+            "information");
+    }
+    else
+    {
+        await NotifyUtils.SendNotification(operationName, "Backup failed", "Failed to get backup.", "error");
+    }
+
+    logger?.LogCritical("Hamster done");
 }
-else
+catch (Exception ex)
 {
-    await NotifyUtils.SendNotification(operationName, "Backup failed", "Failed to get backup.", "error");
+
 }
 
-logger?.LogCritical("Hamster done");
 
-
-ServiceProvider BuildServiceProvider()
+ServiceProvider BuildServiceProvider(ConfigFile config, BackupOperation operation)
 {
+    var mapper = new MapperConfiguration(mc =>
+        mc.AddProfile(new AutoMapping())).CreateMapper();
+    
+    var configDto = mapper.Map<HamsterConfigDto>(config);
+    var operationToExecuteDto = mapper.Map<BackupOperationDto>(operation);
+    
     return new ServiceCollection()
         .AddLogging(options =>
         {
@@ -72,6 +81,7 @@ ServiceProvider BuildServiceProvider()
         .AddScoped<NotifyUtils>()
         .AddSingleton(mapper)
         .AddSingleton(configDto)
+        .AddSingleton(operationToExecuteDto)
         .AddAutoMapper(typeof(Program))
         .BuildServiceProvider();
 }
