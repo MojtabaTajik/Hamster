@@ -37,7 +37,7 @@ public class OperationExecutive
             string backupDir = PathUtils.BuildBackupDir(operation.Name);
 
             // Execute operation
-            string result = await ProcessUtils.ExecuteProcess(operation!.Command);
+            string result = await ProcessUtils.ExecuteBashCommand(operation!.Command);
             _logger.LogInformation("Execute result => {Result}", result);
             
             // Check operation execution generate any backup file or not

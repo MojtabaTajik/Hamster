@@ -2,9 +2,9 @@ using System.Diagnostics;
 
 namespace hamster.Utils;
 
-public class ProcessUtils
+public static class ProcessUtils
 {
-    public static async Task<string> ExecuteProcess(string command)
+    public static async Task<string> ExecuteBashCommand(string command)
     {
         using var proc = new Process();
         proc.StartInfo.FileName = OperatingSystemUtils.GetOsCommandEngine();
