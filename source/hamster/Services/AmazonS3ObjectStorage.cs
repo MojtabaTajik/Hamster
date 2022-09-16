@@ -17,8 +17,8 @@ public class AmazonS3ObjectStorage
     {
         _logger = logger;
 
-        var awsCredentials = new BasicAWSCredentials(config.AccessKey, config.SecretKey);
-        var s3Config = new AmazonS3Config { ServiceURL = config.EndpointURL };
+        var awsCredentials = new BasicAWSCredentials(config.S3_AccessKey, config.S3_SecretKey);
+        var s3Config = new AmazonS3Config { ServiceURL = config.S3_EndpointURL };
         _s3Client = new AmazonS3Client(awsCredentials, s3Config);
     }
 
