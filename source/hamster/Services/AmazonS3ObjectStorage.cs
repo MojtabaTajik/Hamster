@@ -14,12 +14,12 @@ public class AmazonS3ObjectStorage
     private readonly AmazonS3Client _s3Client;
     private readonly ILogger<AmazonS3ObjectStorage> _logger;
 
-    public AmazonS3ObjectStorage(Config config, ILogger<AmazonS3ObjectStorage> logger)
+    public AmazonS3ObjectStorage(ConfigFile configFile, ILogger<AmazonS3ObjectStorage> logger)
     {
         _logger = logger;
 
-        var awsCredentials = new BasicAWSCredentials(config.S3_AccessKey, config.S3_SecretKey);
-        var s3Config = new AmazonS3Config { ServiceURL = config.S3_EndpointURL };
+        var awsCredentials = new BasicAWSCredentials(configFile.S3_AccessKey, configFile.S3_SecretKey);
+        var s3Config = new AmazonS3Config { ServiceURL = configFile.S3_EndpointURL };
         _s3Client = new AmazonS3Client(awsCredentials, s3Config);
     }
 

@@ -1,5 +1,4 @@
-using Ardalis.GuardClauses;
-using hamster.Model;
+using hamster.DTO;
 using hamster.Utils;
 using Microsoft.Extensions.Logging;
 
@@ -7,40 +6,27 @@ namespace hamster.Services;
 
 public class OperationExecutive
 {
-    private readonly Config _config;
     private readonly UploadFileUtils _uploadFileUtils;
     private readonly CompressUtils _compressUtils;
     private readonly ILogger<OperationExecutive> _logger;
 
-    public OperationExecutive(Config config, ILogger<OperationExecutive> logger, UploadFileUtils uploadFileUtils, CompressUtils compressUtils)
+    public OperationExecutive(ILogger<OperationExecutive> logger, UploadFileUtils uploadFileUtils, CompressUtils compressUtils)
     {
-        _config = config;
         _logger = logger;
         _uploadFileUtils = uploadFileUtils;
         _compressUtils = compressUtils;
     }
 
-    public async Task<bool> Execute(string operationName)
+    public async Task<bool> Execute(BackupOperationDto operation)
     {
         try
         {
-            Guard.Against.NullOrWhiteSpace(operationName, nameof(operationName));
-            
-            var operation = _config.Operations.FirstOrDefault(f => 
-                f.Name.Equals(operationName, StringComparison.OrdinalIgnoreCase));
-
-            if (operation == null)
-            {
-                _logger.LogCritical("Can't find operation : {OperationName}", operationName);
-                return false;
-            }
-            
             _logger.LogInformation("Executing operation : {OperationName}", operation.Name);
 
             string backupDir = PathUtils.BuildBackupDir(operation.Name);
 
             // Execute operation
-            string result = await ProcessUtils.ExecuteBashCommand(operation!.Command);
+            string result = await ProcessUtils.ExecuteBashCommand(operation.Command);
             _logger.LogInformation("Execute result => {Result}", result);
             
             // Check operation execution generate any backup file or not
