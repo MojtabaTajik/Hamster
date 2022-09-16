@@ -1,4 +1,6 @@
 ﻿
+using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
 using Ardalis.GuardClauses;
 using AutoMapper;
@@ -24,9 +26,11 @@ try
     Guard.Against.Null(operation, nameof(operation));
     
     var serviceProvider = BuildServiceProvider(config, operation);
+    var fileVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
     
     var logger = serviceProvider.GetService<ILogger<Program>>();
-    logger?.LogInformation("Hamster started");
+    logger?.LogInformation("Hamster {FileVersion}", fileVersion);
+    logger?.LogCritical("Operation started : {OperationName}", operationName);
     
     var operationExecutive = serviceProvider.GetService<OperationExecutive>();
     var executeResult = await operationExecutive?.Execute()!;
@@ -43,7 +47,7 @@ try
         await NotifyUtils.SendNotification(operationName, "Backup failed", "Backup failed.", "error");
     }
 
-    logger?.LogCritical("Hamster done");
+    logger?.LogCritical("Operation done");
 }
 catch (Exception ex)
 {
