@@ -11,7 +11,8 @@ public class AutoMapping : AutoMapper.Profile
         CreateMap<ConfigFile, HamsterConfigDto>();
         CreateMap<BackupOperation, BackupOperationDto>()
             .ForMember(m => m.Command,
-                opt => opt.MapFrom(src => (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                opt => opt.MapFrom(src => 
+                    (Environment.OSVersion.Platform == PlatformID.Win32NT)
                     ? TranslateCommand(src.WindowsCommand, src.Name)
                     : TranslateCommand(src.UnixCommand, src.Name)))
             .ForMember(mem => mem.RemoteFileName,
