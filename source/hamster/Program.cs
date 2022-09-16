@@ -33,11 +33,13 @@ try
 
     if (executeResult)
     {
+        logger?.LogCritical("Backup success");
         await NotifyUtils.SendNotification(operationName, "Backup success", "Backup complete successfully.",
             "information");
     }
     else
     {
+        logger?.LogCritical("Backup failed");
         await NotifyUtils.SendNotification(operationName, "Backup failed", "Backup failed.", "error");
     }
 
