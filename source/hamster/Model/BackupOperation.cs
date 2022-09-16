@@ -51,7 +51,7 @@ public class BackupOperation
     private string TranslateCommand(string command)
     {
         return command    
-            .Replace("$Name", PathUtils.BackupDir(Name), StringComparison.OrdinalIgnoreCase)
+            .Replace("$Name", PathUtils.BuildBackupDir(Name), StringComparison.OrdinalIgnoreCase)
             .Replace("\"", "\\\"");
     }
 }

@@ -34,11 +34,7 @@ public class OperationExecutive
             
             _logger.LogInformation("Executing operation : {OperationName}", operation.Name);
 
-            string backupDir = PathUtils.BackupDir(operation.Name);
-            if (!Directory.Exists(backupDir))
-            {
-                Directory.CreateDirectory(backupDir);
-            }
+            string backupDir = PathUtils.BuildBackupDir(operation.Name);
 
             // Execute operation
             string result = await ProcessUtils.ExecuteProcess(operation!.Command);
