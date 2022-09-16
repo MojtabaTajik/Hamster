@@ -1,6 +1,5 @@
 ﻿
 using System.Diagnostics;
-using System.Reflection;
 using System.Text.Json;
 using Ardalis.GuardClauses;
 using AutoMapper;
@@ -18,7 +17,7 @@ try
 
     Guard.Against.Null(config, nameof(config));
     Guard.Against.Zero(args.Length, nameof(args.Length), "Operation name is mandatory.");
-
+    
     var operationName = args[0];
     var operation =
         config.Operations.FirstOrDefault(f => f.Name.Equals(operationName, StringComparison.OrdinalIgnoreCase));
@@ -26,9 +25,10 @@ try
     Guard.Against.Null(operation, nameof(operation));
     
     var serviceProvider = BuildServiceProvider(config, operation);
-    var fileVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
     
     var logger = serviceProvider.GetService<ILogger<Program>>();
+
+    var fileVersion = GetExecutableVersion();
     logger?.LogInformation("Hamster {FileVersion}", fileVersion);
     logger?.LogCritical("Operation started : {OperationName}", operationName);
     
@@ -95,4 +95,13 @@ ConfigFile? ReadConfigFromFile()
     var configJson = File.ReadAllText(configFilePath);
     var configFile = JsonSerializer.Deserialize<ConfigFile>(configJson);
     return configFile;
+}
+
+string? GetExecutableVersion()
+{
+    var procPath = PathUtils.GetProcessPath();
+    if (!string.IsNullOrWhiteSpace(procPath))
+        return FileVersionInfo.GetVersionInfo(procPath).FileVersion;
+
+    return null;
 }
