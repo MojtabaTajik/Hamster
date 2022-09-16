@@ -33,11 +33,9 @@ public class BackupOperation
     
     private string TranslateRemoteFileName(string fileName)
     {
-        string date = DateTime.Now.ToString("yyyy.dd.MM-HH.mm.ss");
-
-        if (PersianDate)
-            date = PersianDateUtils.Now();
-
+        string date = PersianDate ?
+            PersianDateUtils.Now() : DateTime.Now.ToString("yyyy.dd.MM-HH.mm.ss");
+        
         return fileName
             .Replace("$date", date, StringComparison.OrdinalIgnoreCase)
             .Replace("$name", Name, StringComparison.OrdinalIgnoreCase);
