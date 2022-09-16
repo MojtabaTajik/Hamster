@@ -4,14 +4,14 @@ using Microsoft.Extensions.Logging;
 
 namespace hamster.Services;
 
-public class OperationExecuter
+public class OperationExecutive
 {
     private readonly Config _config;
     private readonly UploadFileUtils _uploadFileUtils;
     private readonly CompressUtils _compressUtils;
-    private readonly ILogger<OperationExecuter> _logger;
+    private readonly ILogger<OperationExecutive> _logger;
 
-    public OperationExecuter(Config config, ILogger<OperationExecuter> logger, UploadFileUtils uploadFileUtils, CompressUtils compressUtils)
+    public OperationExecutive(Config config, ILogger<OperationExecutive> logger, UploadFileUtils uploadFileUtils, CompressUtils compressUtils)
     {
         _config = config;
         _logger = logger;
@@ -19,7 +19,7 @@ public class OperationExecuter
         _compressUtils = compressUtils;
     }
 
-    public async Task<bool> ExecuteOperation(string operationName)
+    public async Task<bool> Execute(string operationName)
     {
         try
         {
@@ -28,11 +28,11 @@ public class OperationExecuter
 
             if (operation == null)
             {
-                _logger.LogCritical("No such operation with name {OperationName}", operationName);
+                _logger.LogCritical("Can't find operation : {OperationName}", operationName);
                 return false;
             }
             
-            _logger.LogInformation("Executing {OperationName}", operation.Name);
+            _logger.LogInformation("Executing operation : {OperationName}", operation.Name);
 
             string backupDir = PathUtils.BackupDir(operation.Name);
             if (!Directory.Exists(backupDir))
@@ -67,8 +67,6 @@ public class OperationExecuter
             }
             
             // Upload zip files (parts)
-            string bucketName = $"{operation.Name}-Backup".ToLower();
-            
             int fileCounter = 0;
             foreach (var compressedFile in compressedFiles)
             {   
@@ -78,7 +76,7 @@ public class OperationExecuter
                 _logger.LogInformation("Uploading [{FileCounter}/{CompressedFilesCount}] => {FileName}",
                     fileCounter, compressedFiles.Count, fileName);
                 
-                bool uploadResult = await _uploadFileUtils.UploadFile(bucketName, fileName, compressedFile);
+                bool uploadResult = await _uploadFileUtils.UploadFile(operation.BucketName, fileName, compressedFile);
 
                 if (!uploadResult)
                 {

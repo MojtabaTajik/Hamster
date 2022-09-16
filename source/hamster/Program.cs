@@ -12,8 +12,8 @@ if (!File.Exists(configFilePath))
     return;
 }
 
-var configContent = File.ReadAllText(configFilePath);
-var config = JsonSerializer.Deserialize<Config>(configContent);
+var configJson = File.ReadAllText(configFilePath);
+var config = JsonSerializer.Deserialize<Config>(configJson);
 
 if (config == null || args.Length < 1)
     return;
@@ -21,13 +21,13 @@ if (config == null || args.Length < 1)
 var serviceProvider = new ServiceCollection()
     .AddLogging(options =>
     {
-        options.AddSimpleConsole(opt =>
+        options.AddSimpleConsole(opt => 
         {
             opt.SingleLine = true;
             opt.TimestampFormat = "MM/dd/yyyy hh:mm:ss => ";
         });
     })
-    .AddSingleton<OperationExecuter>()
+    .AddSingleton<OperationExecutive>()
     .AddScoped<AmazonS3ObjectStorage>()
     .AddScoped<UploadFileUtils>()
     .AddScoped<CompressUtils>()
@@ -36,11 +36,11 @@ var serviceProvider = new ServiceCollection()
     .BuildServiceProvider();
 
 var logger = serviceProvider.GetService<ILogger<Program>>();
-logger?.LogCritical("Hamster started");
+logger?.LogInformation("Hamster started");
 
 var operationName = args[0];
-var opExecuter = serviceProvider.GetService<OperationExecuter>();
-var executeResult = await opExecuter?.ExecuteOperation(operationName)!;
+var operationExecutive = serviceProvider.GetService<OperationExecutive>();
+var executeResult = await operationExecutive?.Execute(operationName)!;
 
 if (executeResult)
 {
