@@ -20,7 +20,9 @@ public class AutoMapping : AutoMapper.Profile
                     TranslateVariable(src.RemoteFileName, src.Name, src.PersianDate)))
             .ForMember(mem => mem.BucketName,
                 opt => opt.MapFrom(src =>
-                    TranslateVariable(src.BucketName, src.Name, src.PersianDate)));
+                    TranslateVariable(src.BucketName, src.Name, src.PersianDate)))
+            .ForMember(m => m.BucketName, opt =>
+                opt.MapFrom(f => f.BucketName.ToLower()));
     }
     
     private string TranslateVariable(string str, string name, bool persianDate)
