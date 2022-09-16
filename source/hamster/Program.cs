@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using Ardalis.GuardClauses;
 using hamster.Model;
 using hamster.Services;
 using hamster.Utils;
@@ -39,6 +40,8 @@ var logger = serviceProvider.GetService<ILogger<Program>>();
 logger?.LogInformation("Hamster started");
 
 var operationName = args[0];
+Guard.Against.NullOrWhiteSpace(operationName, nameof(operationName));
+
 var operationExecutive = serviceProvider.GetService<OperationExecutive>();
 var executeResult = await operationExecutive?.Execute(operationName)!;
 

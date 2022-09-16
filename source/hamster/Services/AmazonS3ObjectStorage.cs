@@ -3,6 +3,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
+using Ardalis.GuardClauses;
 using hamster.Model;
 using Microsoft.Extensions.Logging;
 
@@ -26,6 +27,8 @@ public class AmazonS3ObjectStorage
     {
         try
         {
+            Guard.Against.NullOrWhiteSpace(bucketName, nameof(bucketName));
+            
             var putBucketRequest = new PutBucketRequest
             {
                 BucketName = bucketName,
@@ -49,6 +52,9 @@ public class AmazonS3ObjectStorage
     {
         try
         {
+            Guard.Against.NullOrWhiteSpace(bucketName, nameof(bucketName));
+            Guard.Against.NullOrWhiteSpace(objectName, nameof(objectName));
+            
             var metadataRequest = new GetObjectMetadataRequest()
             {
                 BucketName = bucketName,
@@ -67,6 +73,10 @@ public class AmazonS3ObjectStorage
 
     public async Task<bool> UploadObjectAsync(string bucketName, string keyName, string filePath)
     {
+        Guard.Against.NullOrWhiteSpace(bucketName, nameof(bucketName));
+        Guard.Against.NullOrWhiteSpace(keyName, nameof(keyName));
+        Guard.Against.NullOrWhiteSpace(filePath, nameof(filePath));
+        
         // Create list to store upload part responses.
         List<UploadPartResponse> uploadResponses = new();
 
@@ -163,6 +173,8 @@ public class AmazonS3ObjectStorage
     {
         try
         {
+            Guard.Against.NullOrWhiteSpace(bucketName, nameof(bucketName));
+            
             var lifecycleConfiguration = new LifecycleConfiguration
             {
                 Rules = new List<LifecycleRule>

@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using Ardalis.GuardClauses;
 
 namespace hamster.Utils;
 
@@ -6,6 +7,10 @@ public class CompressUtils
 {
     public List<string> CompressDirectory(string sourceDir, string destPath, string fileName, long partSize)
     {
+        Guard.Against.NullOrWhiteSpace(sourceDir, nameof(sourceDir));
+        Guard.Against.NullOrWhiteSpace(destPath, nameof(destPath));
+        Guard.Against.NullOrWhiteSpace(fileName, nameof(fileName));
+        
         var result = new List<string>();
 
         if (!Directory.Exists(sourceDir))

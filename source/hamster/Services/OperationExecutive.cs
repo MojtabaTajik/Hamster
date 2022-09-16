@@ -1,3 +1,4 @@
+using Ardalis.GuardClauses;
 using hamster.Model;
 using hamster.Utils;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,8 @@ public class OperationExecutive
     {
         try
         {
+            Guard.Against.NullOrWhiteSpace(operationName, nameof(operationName));
+            
             var operation = _config.Operations.FirstOrDefault(f => 
                 f.Name.Equals(operationName, StringComparison.OrdinalIgnoreCase));
 
