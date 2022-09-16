@@ -1,7 +1,7 @@
-# **Hamster**<h1>
+# **Hamster**
 <img src="/resources/hamster.png" alt="drawing" width="150" height="150"/>
 
-### **Swiss army data backup solution** <h6>
+### **Swiss army data backup solution**
 
 I called it hamsters because Hamsters don't just stuff their faces with food; they can also pack up their cheek pouches with babies. Mother hamsters are protective of their babies, and when they perceive a threat to the newborn clan, she may stuff the babies into her mouth and hide the babies in her cheek ;)
 
