@@ -59,8 +59,12 @@ The \$Name and $Date is predefined variables which replaces at runtime with actu
 The backup operation starts by passing the operation name defined in the config file to the Hamster executable:
 
 ```
-sudo chmod +x hmaster
-hamster StreamServer-DB
+sudo chmod +x hmaster-linux
+hamster-linux StreamServer-DB
 ```
 
-We use Jenkins in our CI/CD pipeline and use it to schedule the backup operations on multiple servers; this way, we don't need to clone and configure each server manually and sepratly; we define a freestyle project for each server and define the schedule of backup operation using CRON time and execute Hamster with the proper command line on the target server.
+We use Jenkins in our CI/CD pipeline and use it to schedule the backup operations on multiple servers; this way, we don't need to copy and configure each server manually; we define a freestyle project for each server and set the schedule for the backup operation using CRON time and execute Hamster with the proper command line on the target server.
+
+- If you use your CI/CD to schedule the backups, it’s necessary to add a post-build action to clean up the workspace on the server after each execution. This step is for your security to remove the config.json from the server, this file contains secrets to access server databases, files and others, and it shouldn’t stay there all the time.
+
+I welcome your ideas and collaboration on development.
